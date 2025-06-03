@@ -15,12 +15,12 @@ import (
 )
 
 type ConnectedUser struct {
-	ID        int       `json:"id"`
-	Username  string    `json:"username"`
-	Email     string    `json:"email"`
-	Password  string    `json:"-"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID        int
+	Username  string
+	Email     string
+	Password  string
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 type Session struct {
@@ -33,10 +33,14 @@ type Thread struct {
 	ID          int
 	Title       string
 	Description string
-	Tags        []string
+	Tag         string
 	AuthorID    int
-	State       string // ouvert, fermé, archivé
+	State       string
 	CreatedAt   time.Time
+}
+
+type ThreadList struct {
+	Threads []Thread
 }
 
 func main() {
@@ -56,16 +60,66 @@ func InitialiseServer() {
 	})
 
 	http.HandleFunc("/mainMenu", func(w http.ResponseWriter, r *http.Request) {
-		temp.ExecuteTemplate(w, "mainMenu", nil)
+		db, err := ConnectDatabase()
+		if err != nil {
+			log.Printf("Erreur de connexion à la base de données: %v", err)
+			http.Error(w, "Database error", 500)
+			return
+		}
+		defer db.Close()
+		threadList, err := GetThreadList(db)
+		if err != nil {
+			log.Printf("Erreur lors de la récupération des threads: %v", err)
+			http.Error(w, "Erreur lors de la récupération des threads", 500)
+			return
+		}
+
+		cookie, err := r.Cookie("session_token")
+		if err != nil {
+			log.Printf("Aucun token trouvé: %v", err)
+			http.Redirect(w, r, "/connexionPage", http.StatusSeeOther)
+			return
+		}
+
+		userID, valid := ValidateToken(db, cookie.Value)
+		if !valid {
+			log.Printf("Token invalide ou expiré")
+
+			http.Redirect(w, r, "/connexionPage", http.StatusSeeOther)
+			return
+		}
+
+		var user ConnectedUser
+		err = db.QueryRow("SELECT id, username, email, created_at, updated_at FROM users WHERE id = ?", userID).
+			Scan(&user.ID, &user.Username, &user.Email, &user.CreatedAt, &user.UpdatedAt)
+		if err != nil {
+			log.Printf("Erreur lors de la récupération du profil: %v", err)
+			http.Error(w, "Utilisateur non trouvé", 404)
+			return
+		}
+
+		data := struct {
+			Threads ThreadList
+			User    ConnectedUser
+		}{
+			Threads: threadList,
+			User:    user,
+		}
+
+		if err := temp.ExecuteTemplate(w, "mainMenu", data); err != nil {
+			log.Printf("Erreur lors de l'exécution du template: %v", err)
+			http.Error(w, "Erreur lors de l'affichage de la page", 500)
+			return
+		}
 	})
 
-	//Profil avec authentification par token
+	// Profil utilisateur
 	http.HandleFunc("/profile", func(w http.ResponseWriter, r *http.Request) {
 		// Récupérer le token depuis le cookie
 		cookie, err := r.Cookie("session_token")
 		if err != nil {
 			log.Printf("Aucun token trouvé: %v", err)
-			http.Redirect(w, r, "/loginPage", http.StatusSeeOther)
+			http.Redirect(w, r, "/connexionPage", http.StatusSeeOther)
 			return
 		}
 
@@ -77,11 +131,10 @@ func InitialiseServer() {
 		}
 		defer db.Close()
 
-		// Vérifier si le token est valide
 		userID, valid := ValidateToken(db, cookie.Value)
 		if !valid {
 			log.Printf("Token invalide ou expiré")
-			http.Redirect(w, r, "/loginPage", http.StatusSeeOther)
+			http.Redirect(w, r, "/connexionPage", http.StatusSeeOther)
 			return
 		}
 
@@ -98,7 +151,109 @@ func InitialiseServer() {
 		temp.ExecuteTemplate(w, "profile", user)
 	})
 
+	// Création de thread
+	http.HandleFunc("/createThread", func(w http.ResponseWriter, r *http.Request) {
+		// Récupérer le token depuis le cookie
+		cookie, err := r.Cookie("session_token")
+		if err != nil {
+			log.Printf("Aucun token trouvé: %v", err)
+			http.Redirect(w, r, "/connexionPage", http.StatusSeeOther)
+			return
+		}
+
+		db, err := ConnectDatabase()
+		if err != nil {
+			log.Printf("Erreur de connexion à la base de données: %v", err)
+			http.Error(w, "Database error", 500)
+			return
+		}
+		defer db.Close()
+
+		userID, valid := ValidateToken(db, cookie.Value)
+		if !valid {
+			log.Printf("Token invalide ou expiré")
+			http.Redirect(w, r, "/connexionPage", http.StatusSeeOther)
+			return
+		}
+
+		// Récupérer les informations utilisateur
+		var user ConnectedUser
+		err = db.QueryRow("SELECT id, username, email, created_at, updated_at FROM users WHERE id = ?", userID).
+			Scan(&user.ID, &user.Username, &user.Email, &user.CreatedAt, &user.UpdatedAt)
+		if err != nil {
+			log.Printf("Erreur lors de la récupération du profil: %v", err)
+			http.Error(w, "Utilisateur non trouvé", 404)
+			return
+		}
+
+		temp.ExecuteTemplate(w, "createThread", user)
+	})
+
+	http.HandleFunc("/createThread/process", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			r.ParseForm()
+			title := r.FormValue("thread_title")
+			description := r.FormValue("thread_desc")
+			tags := r.FormValue("thread_tag")
+
+			if title == "" || description == "" || tags == "" {
+				log.Println("Données manquantes dans le formulaire")
+				http.Error(w, "Tous les champs sont requis", 400)
+				return
+			}
+
+			// Récupérer le token depuis le cookie
+			cookie, err := r.Cookie("session_token")
+			if err != nil {
+				log.Printf("Aucun token trouvé: %v", err)
+				http.Redirect(w, r, "/connexionPage", http.StatusSeeOther)
+				return
+			}
+
+			db, err := ConnectDatabase()
+			if err != nil {
+				log.Printf("Erreur de connexion à la base de données: %v", err)
+				http.Error(w, "Database error", 500)
+				return
+			}
+			defer db.Close()
+
+			// Vérifier si le token est valide et récupérer l'userID
+			userID, valid := ValidateToken(db, cookie.Value)
+			if !valid {
+				log.Printf("Token invalide ou expiré")
+				http.Redirect(w, r, "/connexionPage", http.StatusSeeOther)
+				return
+			}
+
+			// Insérer le thread dans la base de données
+			stmt, err := db.Prepare("INSERT INTO threads (title, description, tags, author_id) VALUES (?, ?, ?, ?)")
+			if err != nil {
+				log.Printf("Erreur de préparation de la requête: %v", err)
+				http.Error(w, "Erreur serveur", 500)
+				return
+			}
+			defer stmt.Close()
+
+			_, err = stmt.Exec(title, description, tags, userID)
+			if err != nil {
+				log.Printf("Erreur lors de l'insertion du thread: %v", err)
+				http.Error(w, "Erreur lors de la création du thread", 500)
+				return
+			}
+
+			log.Printf("Thread créé avec succès par l'utilisateur %d", userID)
+
+			http.Redirect(w, r, "/mainMenu", http.StatusSeeOther)
+			return
+		}
+	})
+
 	//Login / Register
+	http.HandleFunc("/connexionPage", func(w http.ResponseWriter, r *http.Request) {
+		temp.ExecuteTemplate(w, "connexionPage", nil)
+	})
+
 	http.HandleFunc("/loginPage", func(w http.ResponseWriter, r *http.Request) {
 		temp.ExecuteTemplate(w, "loginPage", nil)
 	})
@@ -220,14 +375,13 @@ func InitialiseServer() {
 			Path:     "/",
 		})
 
-		http.Redirect(w, r, "/loginPage", http.StatusSeeOther)
+		http.Redirect(w, r, "/connexionPage", http.StatusSeeOther)
 	})
 
 	//Lance le serveur
 	RunServer()
 }
 
-// Génère un token aléatoire sécurisé
 func GenerateToken() (string, error) {
 	bytes := make([]byte, 32)
 	if _, err := rand.Read(bytes); err != nil {
@@ -236,7 +390,6 @@ func GenerateToken() (string, error) {
 	return hex.EncodeToString(bytes), nil
 }
 
-// Crée un token de session dans la base de données
 func CreateSessionToken(db *sql.DB, userID int) (string, error) {
 	token, err := GenerateToken()
 	if err != nil {
@@ -259,7 +412,6 @@ func CreateSessionToken(db *sql.DB, userID int) (string, error) {
 	return token, nil
 }
 
-// Valide un token et retourne l'ID utilisateur si valide
 func ValidateToken(db *sql.DB, token string) (int, bool) {
 	var userID int
 	var expiresAt time.Time
@@ -281,13 +433,11 @@ func ValidateToken(db *sql.DB, token string) (int, bool) {
 	return userID, true
 }
 
-// Supprime un token de session
 func DeleteSessionToken(db *sql.DB, token string) error {
 	_, err := db.Exec("DELETE FROM sessions WHERE token = ?", token)
 	return err
 }
 
-// Nettoie les tokens expirés (à appeler périodiquement)
 func CleanExpiredTokens(db *sql.DB) error {
 	_, err := db.Exec("DELETE FROM sessions WHERE expires_at < ?", time.Now())
 	return err
@@ -353,4 +503,24 @@ func RegisterUser(db *sql.DB, username, email, hashedPassword string) error {
 func HashPassword(password string) string {
 	hash := sha512.Sum512([]byte(password))
 	return hex.EncodeToString(hash[:])
+}
+
+func GetThreadList(db *sql.DB) (ThreadList, error) {
+	var threads []Thread
+
+	rows, err := db.Query("SELECT id, title, description, tags, author_id, state, created_at FROM threads")
+	if err != nil {
+		return ThreadList{}, fmt.Errorf("erreur lors de la récupération des threads: %v", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var thread Thread
+		if err := rows.Scan(&thread.ID, &thread.Title, &thread.Description, &thread.Tag, &thread.AuthorID, &thread.State, &thread.CreatedAt); err != nil {
+			return ThreadList{}, fmt.Errorf("erreur lors du scan des threads: %v", err)
+		}
+		threads = append(threads, thread)
+	}
+
+	return ThreadList{Threads: threads}, nil
 }
