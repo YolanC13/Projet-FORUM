@@ -1,0 +1,23 @@
+{{define "registerPage"}}
+<!DOCTYPE html>
+  <head>
+    <title>Projet Forum | Register</title>
+    <link rel="stylesheet" type="text/css" href="/styles/styles.css">
+  </head>
+  <body>
+    <button class="button" onclick="location.href='/mainMenu'">Back</button>
+    <h1>Register</h1>
+    <form action="/userRegister" method="post">
+      <label for="username">Username:</label>
+      <input type="text" id="username" name="username" required>
+      <br>
+      <label for="email">Email:</label>
+      <input type="text" id="email" name="email" required>
+      <br>
+      <label for="password">Password:</label>
+      <input type="password" id="password" name="password" minlength="12" required>
+      <br>
+      <button type="submit">Register</button>
+  </body>
+</html>
+{{end}}
