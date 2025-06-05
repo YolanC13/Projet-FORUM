@@ -1,0 +1,31 @@
+{{define "thread"}}
+<!DOCTYPE html>
+  <head>
+    <title>Projet Forum | "{{.Thread.Title}}"</title>
+    <link rel="stylesheet" type="text/css" href="/styles/styles.css">
+  </head>
+  <body>
+    <button class="button" onclick="location.href='/mainMenu'">Back</button>
+    <h1>{{.Thread.Title}}</h1>
+    <h3>{{.Thread.Description}}</h3>
+    <form action="/thread/postMessage" method="post">
+      <input type="text" id="message_content" name="message_content">
+      <input type="hidden" name="thread_id" value="{{.Thread.ID}}">
+      <button type="submit">Send</button>
+    </form>
+    {{if .Messages}}
+      <h2>{{ len .Messages }} message(s)</h2>
+      {{range $index, $message := .Messages}}
+        <div class="message">
+          <div class="message-content">{{$message.Content}}</div>
+          <span>By: {{$message.Author.Username}}</span><br>
+          <span>Created: {{$message.CreatedAt.Format "02/01/2006 à 15:04"}}</span>
+        </div>
+        <hr>
+      {{end}}
+    {{else}}
+      <p>No messages in this thread.</p>
+    {{end}}
+  </body>
+</html>
+{{end}}
