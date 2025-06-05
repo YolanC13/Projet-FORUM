@@ -3,36 +3,24 @@
 <html>
   <head>
     <title>Projet Forum | Main Menu</title>
-    <link rel="stylesheet" type="text/css" href="/styles/styles.css">
+    <link rel="stylesheet" type="text/css" href="../styles/styles.css">
   </head>
   <body>
-    <button class="button" onclick="location.href='/profile'">Profile</button>
-    <button class="button" onclick="location.href='/createThread'">Create Thread</button>
-
-    <h2>{{len .Threads.Threads}} thread(s)</h2>
-      
-    {{if .Threads.Threads}}
-        {{range $index, $thread := .Threads.Threads}}
-        <div class="thread">
-            <strong><h3 class="thread-title">{{$thread.Title}}</h3></strong>
-            <div class="thread-description">{{$thread.Description}}</div>
-            <div class="thread-tag">{{$thread.Tag}}</div>
-                    <span>Par l'utilisateur ID: {{$thread.AuthorID}}</span>
-                    <span>État: {{$thread.State}}</span>
-                </div>
-                <div>
-                    Créé le: {{$thread.CreatedAt.Format "02/01/2006 à 15:04"}}
-                </div>
-            </div>
-            <button class="button" onclick="location.href=''">Open thread</button><br>
-            <span>------------------</span><br>
+    <div class="forum-header">
+      <h1>BIENVENUE SUR FORUM YNOVSTUD</h1>
+      <div class="forum-pp">PP</div>
+    </div>
+    <div class="forum-main">
+      <div class="forum-channel">CHANNEL</div>
+      <div class="forum-feed">
+        FILE D'ACUALITER
+        <div style="margin-top:30px;">
+          <button class="button" onclick="location.href='/profile'">Profile</button>
+          <button class="button" onclick="location.href='/creer'">creerThread</button>
         </div>
-        {{end}}
-    {{else}}
-        <div class="no-threads">
-            <p>Aucun thread disponible pour le moment.</p>
-        </div>
-    {{end}}
+      </div>
+      <div class="forum-thread">CREER UN THREAD</div>
+    </div>
   </body>
 </html>
 {{end}}

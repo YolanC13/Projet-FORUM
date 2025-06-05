@@ -1,11 +1,15 @@
 {{define "profile"}}
 <!DOCTYPE html>
+<html>
   <head>
     <title>Projet Forum | Profile</title>
     <link rel="stylesheet" type="text/css" href="/styles/styles.css">
   </head>
   <body>
-<h1>Your profile</h1>
+    <div class="forum-header">
+      <h1>Votre profil</h1>
+      <div class="forum-pp">PP</div>
+    </div>
     <div class="profile-info">
       <p><strong>Username:</strong> {{.Username}}</p>
       <p><strong>Email:</strong> {{.Email}}</p>
@@ -13,7 +17,6 @@
       <p><strong>Last updated:</strong> {{.UpdatedAt.Format "2006-01-02 15:04"}}</p>
       <p><strong>User ID:</strong> {{.ID}}</p>
     </div>
-
     <div class="profile-actions">
       <button class="button" onclick="location.href='/mainMenu'">Back to Main Menu</button>
       <button class="button logout-btn" onclick="location.href='/logout'">Logout</button>
