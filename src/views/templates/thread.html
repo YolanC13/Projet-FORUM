@@ -2,12 +2,13 @@
 <!DOCTYPE html>
   <head>
     <title>Projet Forum | "{{.Thread.Title}}"</title>
-    <link rel="stylesheet" type="text/css" href="/styles/styles.css">
+    <link rel="stylesheet" type="text/css" href="/styles/style.css">
   </head>
   <body>
     <button class="button" onclick="location.href='/mainMenu'">Back</button>
     <h1>{{.Thread.Title}}</h1>
     <h3>{{.Thread.Description}}</h3>
+    <span>By: {{.Thread.Author.Username}}</span><br>
     <form action="/thread/postMessage" method="post">
       <input type="text" id="message_content" name="message_content">
       <input type="hidden" name="thread_id" value="{{.Thread.ID}}">
@@ -18,7 +19,8 @@
       {{range $index, $message := .Messages}}
         <div class="message">
           <div class="message-content">{{$message.Content}}</div>
-          <span>By: {{$message.Author.Username}}</span><br>
+          <span>By:</span>
+          <button onclick="location.href='/profile?id={{$message.AuthorID}}'">{{$message.Author.Username}}</button><br>
           <span>Created: {{$message.CreatedAt.Format "02/01/2006 à 15:04"}}</span>
         </div>
         <hr>

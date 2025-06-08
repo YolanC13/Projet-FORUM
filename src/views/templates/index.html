@@ -1,0 +1,72 @@
+{{define "mainMenu"}}
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Projet Forum | Main Menu</title>
+    <link rel="stylesheet" type="text/css" href="/styles/style.css">
+  </head>
+  <body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="user-profile">
+                <div class="avatar">U</div>
+                <div class="username">{{.User.Username}}</div>
+            </div>
+            <div class="sort-section">
+                <h3>Sort by :</h3>
+                <div class="sort-options">
+                    <button class="sort-btn active" onclick="">Recent</button>
+                    <button class="sort-btn" onclick="">Popular</button>
+                    <button class="sort-btn" onclick="">Title</button>
+                    <button class="sort-btn" onclick="">Author</button>
+                </div>
+            </div>
+        
+            <button class="create-thread-btn" onclick="location.href='/createThread'">Create thread</button>
+        </div>
+    <div class="main-content">
+            <div class="header">
+                <h2 class="thread-count"><span id="threadCount">{{len .Threads.Threads}}</span> thread(s)</h2>
+                <div class="action-buttons">
+                    <a href="/profile?id={{.User.ID}}" class="btn btn-primary">Profile</a>
+                    <a href="#" class="btn btn-secondary">Settings</a>
+                </div>
+            </div>       
+
+    <div class="threads-container" id="threadsContainer">
+      {{if .Threads.Threads}}
+        {{range $index, $thread := .Threads.Threads}}
+          <div class="thread-card">
+            <div class="thread-header">
+                <div>
+                    <h3 class="thread-title">{{$thread.Title}}</h3>
+                    <div class="thread-author">by <strong>{{$thread.Author.Username}}</strong></div>
+                </div>
+                <div class="like-count">
+                    <span>1k</span>
+                    <span class="heart">❤️</span>
+                </div>
+            </div>
+            
+            <div class="thread-description">{{$thread.Description}}</div>
+            
+            <div class="thread-meta">
+                <span>Created: {{$thread.CreatedAt.Format "02/01/2006 à 15:04"}}</span>
+                <div class="thread-tag">{{$thread.Tag}}</div>
+            </div>
+            <div class="thread-actions">
+                <button class="btn btn-primary" onclick="location.href='/thread?id={{$thread.ID}}'">Open thread</button>
+                <button class="btn btn-secondary" onclick="location.href='/thread/like?id={{$thread.ID}}'">Like</button>
+                <button class="btn btn-secondary" onclick="location.href='/thread/dislike?id={{$thread.ID}}'">Dislike</button>
+            </div>
+        </div>
+        {{end}}
+      {{else}}
+      <div class="no-threads">
+            <p>No threads.</p>
+        </div>
+      {{end}}
+    </div>
+  </body>
+</html>
+{{end}}

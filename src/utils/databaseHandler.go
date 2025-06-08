@@ -17,6 +17,7 @@ type ConnectedUser struct {
 	Username  string
 	Email     string
 	Password  string
+	Salt      string
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
@@ -64,6 +65,7 @@ type User struct {
 	Username  string
 	Email     string
 	Password  string
+	Salt      string
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
@@ -81,8 +83,8 @@ func GenerateToken() (string, error) {
 func GetUserByID(db *sql.DB, userID int) (*User, error) {
 	var user User
 
-	err := db.QueryRow("SELECT id, username, email, password, created_at, updated_at FROM users WHERE id = ?", userID).
-		Scan(&user.ID, &user.Username, &user.Email, &user.Password, &user.CreatedAt, &user.UpdatedAt)
+	err := db.QueryRow("SELECT id, username, email, password, salt, created_at, updated_at FROM users WHERE id = ?", userID).
+		Scan(&user.ID, &user.Username, &user.Email, &user.Password, &user.Salt, &user.CreatedAt, &user.UpdatedAt)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -161,7 +163,15 @@ func ConnectDatabase() (*sql.DB, error) {
 	return db, nil
 }
 
-func RegisterUser(db *sql.DB, username, email, hashedPassword string) error {
+func GenerateSalt() (string, error) {
+	bytes := make([]byte, 16)
+	if _, err := rand.Read(bytes); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(bytes), nil
+}
+
+func RegisterUser(db *sql.DB, username, email, password string) error {
 	var count int
 
 	err := db.QueryRow("SELECT COUNT(*) FROM users WHERE username = ? OR email = ?", username, email).Scan(&count)
@@ -173,13 +183,19 @@ func RegisterUser(db *sql.DB, username, email, hashedPassword string) error {
 		return fmt.Errorf("utilisateur ou email déjà existant")
 	}
 
-	stmt, err := db.Prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)")
+	salt, err := GenerateSalt()
+	if err != nil {
+		return fmt.Errorf("erreur génération salt: %v", err)
+	}
+	hashedPassword := HashPassword(password, salt)
+
+	stmt, err := db.Prepare("INSERT INTO users (username, email, password, salt) VALUES (?, ?, ?, ?)")
 	if err != nil {
 		return fmt.Errorf("erreur de préparation: %v", err)
 	}
 	defer stmt.Close()
 
-	result, err := stmt.Exec(username, email, hashedPassword)
+	result, err := stmt.Exec(username, email, hashedPassword, salt)
 	if err != nil {
 		return fmt.Errorf("erreur d'exécution: %v", err)
 	}
@@ -193,8 +209,8 @@ func RegisterUser(db *sql.DB, username, email, hashedPassword string) error {
 	return nil
 }
 
-func HashPassword(password string) string {
-	hash := sha512.Sum512([]byte(password))
+func HashPassword(password string, salt string) string {
+	hash := sha512.Sum512([]byte(password + salt))
 	return hex.EncodeToString(hash[:])
 }
 
