@@ -20,7 +20,6 @@ type User struct {
 }
 
 func (u *User) Create() error {
-    // Vérifier si l'utilisateur existe déjà
     var count int
     err := DB.QueryRow("SELECT COUNT(*) FROM users WHERE username = ? OR email = ?", u.Username, u.Email).Scan(&count)
     if err != nil {
@@ -30,7 +29,6 @@ func (u *User) Create() error {
         return fmt.Errorf("utilisateur ou email déjà existant")
     }
 
-    // Générer salt et hasher le mot de passe
     salt, err := generateSalt()
     if err != nil {
         return fmt.Errorf("erreur génération salt: %v", err)
@@ -38,7 +36,6 @@ func (u *User) Create() error {
     u.Salt = salt
     u.Password = hashPassword(u.Password, salt)
 
-    // Insérer en base
     stmt, err := DB.Prepare("INSERT INTO users (username, email, password, salt) VALUES (?, ?, ?, ?)")
     if err != nil {
         return fmt.Errorf("erreur de préparation: %v", err)
@@ -88,7 +85,6 @@ func (u *User) ValidatePassword(password string) bool {
     return hashedPassword == u.Password
 }
 
-// Fonctions utilitaires privées
 func generateSalt() (string, error) {
     bytes := make([]byte, 16)
     if _, err := rand.Read(bytes); err != nil {
