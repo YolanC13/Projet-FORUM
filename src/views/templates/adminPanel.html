@@ -1,0 +1,79 @@
+{{define "adminPanel"}}
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Stud'Ynov | Admin Panel</title>
+    <link rel="stylesheet" type="text/css" href="/styles/style.css">
+  </head>
+  <body>
+    <h1>Admin Panel</h1>
+    <h2>Users</h2>
+    <table>
+      <tr>
+        <th>ID</th><th>Username</th><th>Email</th><th>Admin</th><th>Banned</th><th>Actions</th>
+      </tr>
+      {{range .Users}}
+      <tr>
+        <td>{{.ID}}</td>
+        <td>{{.Username}}</td>
+        <td>{{.Email}}</td>
+        <td>{{.IsAdmin}}</td>
+        <td>{{.IsBanned}}</td>
+        <td>
+          {{if not .IsBanned}}
+          <form method="POST" action="/admin/banUser" style="display:inline;">
+            <input type="hidden" name="user_id" value="{{.ID}}">
+            <button type="submit" class="btn btn-danger">Ban</button>
+          </form>
+          {{else}}
+          <form method="POST" action="/admin/unbanUser" style="display:inline;">
+            <input type="hidden" name="user_id" value="{{.ID}}">
+            <button type="submit" class="btn">Unban</button>
+          </form>
+          {{end}}
+        </td>
+      </tr>
+      {{end}}
+    </table>
+    <h2>Threads</h2>
+    <table>
+      <tr>
+        <th>ID</th><th>Title</th><th>Author</th><th>Actions</th>
+      </tr>
+      {{range .Threads}}
+      <tr>
+        <td>{{.ID}}</td>
+        <td>{{.Title}}</td>
+        <td>{{.Author.Username}}</td>
+        <td>
+          <form method="POST" action="/admin/deleteThread" style="display:inline;">
+            <input type="hidden" name="thread_id" value="{{.ID}}">
+            <button type="submit" class="btn btn-danger">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {{end}}
+    </table>
+    <h2>Messages</h2>
+    <table>
+      <tr>
+        <th>ID</th><th>Thread</th><th>Author</th><th>Content</th><th>Actions</th>
+      </tr>
+      {{range .Messages}}
+      <tr>
+        <td>{{.ID}}</td>
+        <td>{{.ThreadID}}</td>
+        <td>{{.Author.Username}}</td>
+        <td>{{.Content}}</td>
+        <td>
+          <form method="POST" action="/admin/deleteMessage" style="display:inline;">
+            <input type="hidden" name="message_id" value="{{.ID}}">
+            <button type="submit" class="btn btn-danger">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {{end}}
+    </table>
+  </body>
+</html>
+{{end}}

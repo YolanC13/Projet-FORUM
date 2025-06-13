@@ -34,9 +34,13 @@ func (tc *ThreadController) ShowMainMenu(w http.ResponseWriter, r *http.Request)
 	data := struct {
 		Threads models.ThreadList
 		User    *models.User
+		Tags    []string
+		Search  string
 	}{
 		Threads: threadList,
 		User:    user,
+		Tags:    nil,
+		Search:  "",
 	}
 
 	tc.RenderTemplate(w, "mainMenu", data)
@@ -56,9 +60,13 @@ func (tc *ThreadController) ShowMainMenuSortedByRecent(w http.ResponseWriter, r 
 	data := struct {
 		Threads models.ThreadList
 		User    *models.User
+		Tags    []string
+		Search  string
 	}{
 		Threads: threadList,
 		User:    user,
+		Tags:    nil,
+		Search:  "",
 	}
 	tc.RenderTemplate(w, "mainMenu", data)
 }
@@ -77,9 +85,13 @@ func (tc *ThreadController) ShowMainMenuSortedByPopularity(w http.ResponseWriter
 	data := struct {
 		Threads models.ThreadList
 		User    *models.User
+		Tags    []string
+		Search  string
 	}{
 		Threads: threadList,
 		User:    user,
+		Tags:    nil,
+		Search:  "",
 	}
 	tc.RenderTemplate(w, "mainMenu", data)
 }
@@ -145,11 +157,19 @@ func (tc *ThreadController) ShowThread(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "ID thread manquant", 400)
 		return
 	}
-
 	threadID, err := strconv.Atoi(threadIDStr)
 	if err != nil {
 		http.Error(w, "ID thread invalide", 400)
 		return
+	}
+
+	// Pagination
+	const pageSize = 10
+	page := 1
+	if p := r.URL.Query().Get("page"); p != "" {
+		if pInt, err := strconv.Atoi(p); err == nil && pInt > 0 {
+			page = pInt
+		}
 	}
 
 	thread, err := models.GetThreadByID(threadID)
@@ -159,21 +179,27 @@ func (tc *ThreadController) ShowThread(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	messages, err := models.GetMessagesByThreadID(threadID)
+	messages, total, err := models.GetMessagesByThreadIDPaginated(threadID, page, pageSize)
 	if err != nil {
 		log.Printf("Erreur récupération messages: %v", err)
 		http.Error(w, "Erreur récupération messages", 500)
 		return
 	}
 
+	totalPages := (total + pageSize - 1) / pageSize
+
 	data := struct {
-		Thread   *models.Thread
-		User     *models.User
-		Messages []models.Message
+		Thread     *models.Thread
+		User       *models.User
+		Messages   []models.Message
+		Page       int
+		TotalPages int
 	}{
-		Thread:   thread,
-		User:     user,
-		Messages: messages,
+		Thread:     thread,
+		User:       user,
+		Messages:   messages,
+		Page:       page,
+		TotalPages: totalPages,
 	}
 
 	tc.RenderTemplate(w, "thread", data)
@@ -265,4 +291,70 @@ func (tc *ThreadController) DeleteThread(w http.ResponseWriter, r *http.Request)
 
 	log.Printf("Thread %d supprimé par utilisateur %d", threadID, user.ID)
 	http.Redirect(w, r, "/mainMenu", http.StatusSeeOther)
+}
+
+func (tc *ThreadController) ShowMainMenuWithFilters(w http.ResponseWriter, r *http.Request) {
+	user, err := tc.GetCurrentUser(r)
+	if err != nil {
+		http.Redirect(w, r, "/connexionPage", http.StatusSeeOther)
+		return
+	}
+
+	// Récupère les tags cochés dans l'URL (ex: ?tag=Sport&tag=Music)
+	tags := r.URL.Query()["tag"]
+
+	threadList, err := models.GetThreadsByTags(tags)
+	if err != nil {
+		http.Error(w, "Erreur récupération threads", 500)
+		return
+	}
+
+	data := struct {
+		Threads models.ThreadList
+		User    *models.User
+		Tags    []string
+		Search  string
+	}{
+		Threads: threadList,
+		User:    user,
+		Tags:    tags,
+		Search:  "",
+	}
+	tc.RenderTemplate(w, "mainMenu", data)
+}
+
+func (tc *ThreadController) SearchThreads(w http.ResponseWriter, r *http.Request) {
+	user, err := tc.GetCurrentUser(r)
+	if err != nil {
+		http.Redirect(w, r, "/connexionPage", http.StatusSeeOther)
+		return
+	}
+
+	// Récupère la recherche et les tags cochés
+	query := r.FormValue("search")
+	tags := r.URL.Query()["tag"]
+	if len(tags) == 0 {
+		// Si la recherche vient d'un POST, récupère les tags du formulaire
+		r.ParseForm()
+		tags = r.Form["tag"]
+	}
+
+	threadList, err := models.SearchThreads(query, tags)
+	if err != nil {
+		http.Error(w, "Erreur recherche threads", 500)
+		return
+	}
+
+	data := struct {
+		Threads models.ThreadList
+		User    *models.User
+		Tags    []string
+		Search  string
+	}{
+		Threads: threadList,
+		User:    user,
+		Tags:    tags,
+		Search:  query,
+	}
+	tc.RenderTemplate(w, "mainMenu", data)
 }

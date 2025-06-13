@@ -1,6 +1,7 @@
 package models
 
 import (
+	"database/sql"
 	"fmt"
 	"time"
 )
@@ -146,4 +147,93 @@ func GetAllThreadsSortedByPopularity() (ThreadList, error) {
 func (t *Thread) Delete() error {
 	_, err := DB.Exec("DELETE FROM threads WHERE id = ?", t.ID)
 	return err
+}
+
+func AdminDeleteThread(threadID int) error {
+	_, err := DB.Exec("DELETE FROM threads WHERE id = ?", threadID)
+	return err
+}
+
+func GetThreadsByTags(tags []string) (ThreadList, error) {
+	var threads []Thread
+	var rows *sql.Rows
+	var err error
+
+	if len(tags) == 0 {
+		return GetAllThreads()
+	}
+
+	query := "SELECT id, title, description, tags, author_id, state, created_at FROM threads WHERE "
+	args := make([]interface{}, len(tags))
+	for i, tag := range tags {
+		if i > 0 {
+			query += " OR "
+		}
+		query += "tags = ?"
+		args[i] = tag
+	}
+	rows, err = DB.Query(query, args...)
+	if err != nil {
+		return ThreadList{}, fmt.Errorf("erreur récupération threads: %v", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var thread Thread
+		if err := rows.Scan(&thread.ID, &thread.Title, &thread.Description, &thread.Tag, &thread.AuthorID, &thread.State, &thread.CreatedAt); err != nil {
+			return ThreadList{}, fmt.Errorf("erreur scan thread: %v", err)
+		}
+		author, err := GetUserByID(thread.AuthorID)
+		if err != nil {
+			return ThreadList{}, fmt.Errorf("erreur récupération auteur: %v", err)
+		}
+		thread.Author = *author
+		likeCount, _ := CountLikes(thread.ID)
+		thread.LikeCount = likeCount
+		threads = append(threads, thread)
+	}
+	return ThreadList{Threads: threads}, nil
+}
+
+func SearchThreads(query string, tags []string) (ThreadList, error) {
+	var threads []Thread
+	var rows *sql.Rows
+	var err error
+
+	baseQuery := "SELECT id, title, description, tags, author_id, state, created_at FROM threads WHERE (title LIKE ? OR description LIKE ?)"
+	args := []interface{}{"%" + query + "%", "%" + query + "%"}
+
+	if len(tags) > 0 {
+		baseQuery += " AND ("
+		for i, tag := range tags {
+			if i > 0 {
+				baseQuery += " OR "
+			}
+			baseQuery += "tags = ?"
+			args = append(args, tag)
+		}
+		baseQuery += ")"
+	}
+
+	rows, err = DB.Query(baseQuery, args...)
+	if err != nil {
+		return ThreadList{}, fmt.Errorf("erreur recherche threads: %v", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var thread Thread
+		if err := rows.Scan(&thread.ID, &thread.Title, &thread.Description, &thread.Tag, &thread.AuthorID, &thread.State, &thread.CreatedAt); err != nil {
+			return ThreadList{}, fmt.Errorf("erreur scan thread: %v", err)
+		}
+		author, err := GetUserByID(thread.AuthorID)
+		if err != nil {
+			return ThreadList{}, fmt.Errorf("erreur récupération auteur: %v", err)
+		}
+		thread.Author = *author
+		likeCount, _ := CountLikes(thread.ID)
+		thread.LikeCount = likeCount
+		threads = append(threads, thread)
+	}
+	return ThreadList{Threads: threads}, nil
 }

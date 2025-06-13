@@ -2,71 +2,84 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Projet Forum | Main Menu</title>
+    <title>Stud'Ynov | Main Menu</title>
     <link rel="stylesheet" type="text/css" href="/styles/style.css">
   </head>
   <body>
-    <div class="container">
-        <div class="sidebar">
-            <div class="user-profile">
-                <div class="avatar">U</div>
-                <div class="username">{{.User.Username}}</div>
-            </div>
-             <div class="sort-section">
-                <h3>Sort by :</h3>
-                <div class="sort-options">
-                    <a href="/mainMenu/sort/recent" class="sort-btn">Recent</a>
-                    <a href="/mainMenu/sort/popularity" class="sort-btn">Popular</a>
-                </div>
-            </div>
-            <button class="create-thread-btn" onclick="location.href='/createThread'">Create thread</button>
-        </div>
-    </div>
-    <div class="main-content">
+    <div id="main-page">
+        <div class="container">
             <div class="header">
-                <h2 class="thread-count"><span id="threadCount">{{len .Threads.Threads}}</span> thread(s)</h2>
-                <div class="action-buttons">
-                    <a href="/profile?id={{.User.ID}}" class="btn btn-primary">Profile</a>
-                </div>
-            </div>       
-    </div>
-    <div class="threads-container" id="threadsContainer">
-      {{if .Threads.Threads}}
-        {{range $index, $thread := .Threads.Threads}}
-          <div class="thread-card">
-            <div class="thread-header">
-                <div>
-                    <h3 class="thread-title">{{$thread.Title}}</h3>
-                    <div class="thread-author">by <strong>{{$thread.Author.Username}}</strong></div>
-                </div>
-                <div class="like-count">
-                    <span>{{$thread.LikeCount}}</span>
-                    <span class="heart">❤️</span>
-                </div>
-            </div>   
-            <div class="thread-description">{{$thread.Description}}</div>
-            <div class="thread-meta">
-                <span>Created: {{$thread.CreatedAt.Format "02/01/2006 à 15:04"}}</span>
-                <div class="thread-tag">{{$thread.Tag}}</div>
+                <h1>Stud'Ynov</h1>
+                <p>Discover a huge community of student !</p>
             </div>
-            <div class="thread-actions">
-                <button class="btn btn-primary" onclick="location.href='/thread?id={{$thread.ID}}'">Open thread</button>
-                <button class="btn btn-secondary" onclick="location.href='/thread/like?id={{$thread.ID}}'">Like</button>
-                {{if eq $thread.Author.ID $.User.ID}}
-                  <form method="POST" action="/thread/delete">
-                    <input type="hidden" name="thread_id" value="{{$thread.ID}}">
-                    <button type="submit" class="btn btn-danger">Supprimer</button>
-                  </form>
-                {{end}}
+
+            <div class="nav-section">
+                <div class="user-card">
+                    <div class="avatar">U</div>
+                    <a href="/profile?id={{.User.ID}}" class="username">{{.User.Username}}</a>
+                    <button class="btn" onclick="location.href='/createThread'">Create a thread</button>
+                </div>
+                <div class="search-sort">
+                    <form class="search-form" action="/mainMenu/search" method="GET">
+                        <input type="text" class="search-input" name="search" placeholder="Search threads...">
+                        <button type="submit" class="btn">Search</button>
+                    </form>
+            
+                    <div class="sort-section">
+                        <h3>Sort by :</h3>
+                        <div class="sort-buttons">
+                            <a href="/mainMenu/sort/recent" class="sort-btn">Recent</a>
+                            <a href="/mainMenu/sort/popularity" class="sort-btn">Popular</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stats-card">
+                    <div class="thread-count">{{len .Threads.Threads}}</div>
+                    <div class="count-label">thread(s)</div>
+                </div>
             </div>
-        </div>
-        {{end}}
+
+            <div class="threads-grid">
+              {{if .Threads.Threads}}
+                {{range $index, $thread := .Threads.Threads}}
+                <div class="thread-card">
+                    <div class="thread-header">
+                        <div>
+                            <h3 class="thread-title">{{$thread.Title}}</h3>
+                            <div class="thread-author">by <strong>{{$thread.Author.Username}}</strong></div>
+                        </div>
+                        <div class="like-section">
+                            <span class="like-count">{{$thread.LikeCount}}</span>
+                            <span class="heart">❤️</span>
+                        </div>
+                    </div>
+                    <div class="thread-description">
+                        {{$thread.Description}}
+                    </div>
+                    <div class="thread-meta">
+                        <span>Created: {{$thread.CreatedAt.Format "02/01/2006 à 15:04"}}</span>
+                        <div class="thread-tag">{{$thread.Tag}}</div>
+                    </div>
+                    <div class="thread-actions">
+                        <button class="btn" onclick="location.href='/thread?id={{$thread.ID}}'">Open</button>
+                        <button class="btn btn-secondary" onclick="location.href='/thread/like?id={{$thread.ID}}'">Like</button>
+                        {{if eq $thread.Author.ID $.User.ID}}
+                          <form method="POST" action="/thread/delete">
+                            <input type="hidden" name="thread_id" value="{{$thread.ID}}">
+                            <button type="submit" class="btn btn-danger">Delete</button>
+                          </form>
+                        {{end}}
+                    </div>
+                </div>
+              {{end}}
       {{else}}
       <div class="no-threads">
             <p>No threads.</p>
         </div>
       {{end}}
     </div>
+    <script src="/scripts/menuNav.js"></script> 
   </body>
 </html>
 {{end}}

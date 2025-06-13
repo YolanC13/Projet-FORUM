@@ -1,39 +1,58 @@
 {{define "createThread"}}
 <!DOCTYPE html>
+<html>
   <head>
-    <title>Projet Forum | Créer un thread</title>
+    <title>Stud'Ynov | Créer un thread</title>
     <link rel="stylesheet" type="text/css" href="/styles/style.css">
   </head>
   <body>
-    <button class="button" onclick="location.href='/mainMenu'">Back</button>
-    <h1>Create a thread</h1>
-    <form action="/createThread/process" method="post">
-      <label for="title">Title:</label>
-      <input type="text" id="title" name="thread_title" required maxlength="15">
-      <br>
-      <label for="description">Description:</label>
-      <input type="text" id="description" name="thread_desc" required maxlength="300">
-      <br>
-      <span>Tag:</span>
-      <input type="radio" id="tag-discussion" name="thread_tag" value="Discussion" required>
-      <label for="tag-discussion">Discussion</label>
-      <input type="radio" id="tag-gossip" name="thread_tag" value="Gossip" required>
-      <label for="tag-gossip">Gossip</label>
-      <input type="radio" id="tag-sport" name="thread_tag" value="Sport">
-      <label for="tag-sport">Sport</label>
-      <input type="radio" id="tag-music" name="thread_tag" value="Music">
-      <label for="tag-music">Music</label>
-      <input type="radio" id="tag-programation" name="thread_tag" value="Programation">
-      <label for="tag-programation">Programation</label>
-      <input type="radio" id="tag-videogames" name="thread_tag" value="Video Games">
-      <label for="tag-videogames">Video Games</label>
-      <input type="radio" id="tag-politic" name="thread_tag" value="Politic">
-      <label for="tag-politic">Politic</label>
-      <input type="radio" id="tag-studiosite" name="thread_tag" value="Studiosité">
-      <label for="tag-studiosite">Studiosité</label>
-      <br>
-      <button type="submit">Create</button>
-    </form>
+<div id="create-thread-page" class="hidden">
+        <button class="btn back-btn" onclick="location.href='/mainMenu'">← Retour</button>
+        <div class="container">
+            <div class="form-container">
+                <h1>Create a new thread</h1>
+                <form action="/createThread/process" method="POST">
+                    <div class="form-group">
+                        <label for="title">Titre :</label>
+                        <input type="text" id="title" name="thread_title" class="form-input" maxlength="40" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="description">Description :</label>
+                        <textarea id="description" name="thread_desc" class="form-input" maxlength="300" rows="4" required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Tag :</label>
+                        <div class="radio-group">
+                            <div class="radio-item">
+                                <input type="radio" id="tag-discussion" name="thread_tag" value="Discussion" required>
+                                <label for="tag-discussion">Discussion</label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" id="tag-sport" name="thread_tag" value="Sport">
+                                <label for="tag-sport">Sport</label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" id="tag-music" name="thread_tag" value="Music">
+                                <label for="tag-music">Music</label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" id="tag-programation" name="thread_tag" value="Programation">
+                                <label for="tag-programation">Programmation</label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" id="tag-videogames" name="thread_tag" value="Video Games">
+                                <label for="tag-videogames">Video games</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn">Create</button>
+                </form>
+            </div>
+        </div>
+    </div>
   </body>
 </html>
 {{end}}

@@ -13,9 +13,12 @@ type BaseController struct {
 }
 
 func NewBaseController() *BaseController {
-	temp, err := template.ParseGlob("views/templates/*.html")
+	temp, err := template.New("").Funcs(template.FuncMap{
+		"add": func(a, b int) int { return a + b },
+		"sub": func(a, b int) int { return a - b },
+	}).ParseGlob("views/templates/*.html")
 	if err != nil {
-		log.Fatal("Erreur parsing templates:", err)
+		log.Fatal("Erreur chargement templates:", err)
 	}
 
 	return &BaseController{

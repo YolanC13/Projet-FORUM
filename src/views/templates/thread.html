@@ -1,33 +1,56 @@
 {{define "thread"}}
 <!DOCTYPE html>
   <head>
-    <title>Projet Forum | "{{.Thread.Title}}"</title>
+    <title>Stud'Ynov | "{{.Thread.Title}}"</title>
     <link rel="stylesheet" type="text/css" href="/styles/style.css">
   </head>
   <body>
-    <button class="button" onclick="location.href='/mainMenu'">Back</button>
-    <h1>{{.Thread.Title}}</h1>
-    <h3>{{.Thread.Description}}</h3>
-    <span>By: {{.Thread.Author.Username}}</span><br>
-    <form action="/thread/postMessage" method="post">
-      <input type="text" id="message_content" name="message_content">
-      <input type="hidden" name="thread_id" value="{{.Thread.ID}}">
-      <button type="submit">Send</button>
-    </form>
-    {{if .Messages}}
-      <h2>{{ len .Messages }} message(s)</h2>
-      {{range $index, $message := .Messages}}
-        <div class="message">
-          <div class="message-content">{{$message.Content}}</div>
-          <span>By:</span>
-          <button onclick="location.href='/profile?id={{$message.AuthorID}}'">{{$message.Author.Username}}</button><br>
-          <span>Created: {{$message.CreatedAt.Format "02/01/2006 à 15:04"}}</span>
+    <div id="thread-detail-page">
+      <button class="btn back-btn" onclick="location.href='/mainMenu'">← Back</button>
+      <div class="container">
+        <div class="thread-detail">
+          <h1>{{.Thread.Title}}</h1>
+          <h3>{{.Thread.Description}}</h3>
+          <span>By: {{.Thread.Author.Username}}</span>
+          <br>
+          <span>Created: {{.Thread.CreatedAt.Format "02/01/2006 à 15:04"}}</span>
+          <div class="message-form">
+            <form action="/thread/postMessage" method="POST">
+              <textarea class="message-input" name="message_content" placeholder="Write message..." minlength="1"></textarea>
+              <input type="hidden" name="thread_id" value="{{.Thread.ID}}">
+              <button class="btn" type="submit">Send</button>
+            </form>
+          </div>
         </div>
-        <hr>
-      {{end}}
-    {{else}}
-      <p>No messages in this thread.</p>
-    {{end}}
+        <div class="messages-container">
+          <h2>{{ len .Messages }} message(s)</h2>
+          {{if .Messages}}
+            {{range $index, $message := .Messages}}
+              <div class="message">
+                <div class="message-content">
+                  {{$message.Content}}
+                </div>
+                <div class="message-meta">
+                  <span>By: <button class="btn btn-secondary" onclick="location.href='/profile?id={{$message.AuthorID}}'">{{$message.Author.Username}}</button></span>
+                  <span>Posted: {{$message.CreatedAt.Format "02/01/2006 à 15:04"}}</span>
+                </div>
+              </div>
+            {{end}}
+          {{else}}
+            <p>No messages in this thread.</p>
+          {{end}}
+        </div>
+      </div>
+      <div class="pagination">
+        {{if gt .Page 1}}
+          <a href="/thread?id={{.Thread.ID}}&page={{sub .Page 1}}">&laquo; Previous</a>
+        {{end}}
+        Page {{.Page}} / {{.TotalPages}}
+        {{if lt .Page .TotalPages}}
+          <a href="/thread?id={{.Thread.ID}}&page={{add .Page 1}}">Next &raquo;</a>
+        {{end}}
+      </div>
+    </div>
   </body>
 </html>
 {{end}}

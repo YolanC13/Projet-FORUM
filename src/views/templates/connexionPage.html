@@ -1,16 +1,19 @@
 {{define "connexionPage"}}
 <!DOCTYPE html>
+<html>
   <head>
-    <title>Projet Forum | Connection</title>
+    <title>Stud'Ynov | Connection</title>
     <link rel="stylesheet" type="text/css" href="/styles/style.css">
   </head>
-    <div id="welcome" class="page active">
-        <h1>Welcome to PROJET Forum</h1>
-        <p>Please choose an option to continue:</p>
-        <div class="welcome-buttons">
-            <button class="btn" onclick="location.href='/loginPage'">Login</button>
-            <button class="btn btn-secondary" onclick="location.href='/registerPage'">Register</button>
-        </div>
+  <body>
+    <div class="welcome-container">
+          <h1 class="welcome-title">Stud'Ynov</h1>
+          <p class="welcome-subtitle">Rejoignez notre communauté et partagez vos passions</p>
+          <div class="welcome-buttons">
+              <button class="btn" onclick="location.href='/loginPage'">Login</button>
+              <button class="btn btn-secondary" onclick="location.href='/registerPage'">Register</button>
+          </div>
     </div>
+  </body>
 </html>
 {{end}}
