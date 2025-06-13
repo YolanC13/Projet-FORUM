@@ -86,6 +86,11 @@ func (ac *AuthController) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !containsUppercase(password) || !containsSpecial(password) {
+		http.Error(w, "Le mot de passe doit contenir au moins une majuscule et un caractère spécial", 400)
+		return
+	}
+
 	user := &models.User{
 		Username: username,
 		Email:    email,
@@ -117,4 +122,22 @@ func (ac *AuthController) Logout(w http.ResponseWriter, r *http.Request) {
 	})
 
 	http.Redirect(w, r, "/connexionPage", http.StatusSeeOther)
+}
+
+func containsUppercase(s string) bool {
+	for _, c := range s {
+		if c >= 'A' && c <= 'Z' {
+			return true
+		}
+	}
+	return false
+}
+
+func containsSpecial(s string) bool {
+	for _, c := range s {
+		if (c >= 33 && c <= 47) || (c >= 58 && c <= 64) || (c >= 91 && c <= 96) || (c >= 123 && c <= 126) {
+			return true
+		}
+	}
+	return false
 }

@@ -19,7 +19,6 @@
                     <p><strong>User ID :</strong> {{.User.ID}}</p>
                 </div>
                 <div class="profile-actions">
-                    <button class="btn" onclick="location.href='/mainMenu'">Back</button>
                     {{if eq .User.ID .CurrentUser.ID}}
                       <button class="btn btn-danger" onclick="location.href='/logout'">Log out</button>
                       {{if .CurrentUser.IsAdmin}}

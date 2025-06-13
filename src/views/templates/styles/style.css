@@ -515,6 +515,83 @@ gap: 15px;
 justify-content: center;
 }
 
+#login.page, #register.page {
+    max-width: 400px;
+    margin: 60px auto 0 auto;
+    background: var(--white);
+    border-radius: 20px;
+    box-shadow: 0 8px 30px var(--shadow);
+    padding: 40px 30px 30px 30px;
+    text-align: center;
+}
+
+#login.page h1, #register.page h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 30px;
+    color: var(--primary);
+}
+
+#login.page .form-group, #register.page .form-group {
+    margin-bottom: 22px;
+    text-align: left;
+}
+
+#login.page label, #register.page label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+#login.page input[type="text"],
+#login.page input[type="password"],
+#register.page input[type="text"],
+#register.page input[type="password"] {
+    width: 100%;
+    padding: 13px 18px;
+    border: 2px solid var(--tertiary);
+    border-radius: 15px;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.3s;
+    margin-bottom: 5px;
+    background: var(--quaternary);
+}
+
+#login.page input[type="text"]:focus,
+#login.page input[type="password"]:focus,
+#register.page input[type="text"]:focus,
+#register.page input[type="password"]:focus {
+    border-color: var(--primary);
+    background: var(--white);
+}
+
+#login.page .btn, #register.page .btn {
+    width: 100%;
+    padding: 13px 0;
+    font-size: 1.1rem;
+    margin-top: 10px;
+}
+
+#login.page .back-btn, #register.page .back-btn {
+    position: static;
+    margin-bottom: 20px;
+    background: var(--quaternary);
+    color: var(--text-dark);
+    box-shadow: none;
+}
+
+#login.page .back-btn:hover, #register.page .back-btn:hover {
+    background: var(--secondary);
+}
+
+@media (max-width: 600px) {
+    #login.page, #register.page {
+        padding: 25px 10px 20px 10px;
+    }
+}
+
 /* Responsive */
 @media (max-width: 768px) {
 .nav-section {
@@ -539,7 +616,6 @@ justify-content: center;
 }
 }
 
-/* No threads message */
 .no-threads {
 text-align: center;
 padding: 60px;
