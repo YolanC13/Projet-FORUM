@@ -13,13 +13,13 @@
                 <h1>Create a new thread</h1>
                 <form action="/createThread/process" method="POST">
                     <div class="form-group">
-                        <label for="title">Titre :</label>
+                        <label for="title">Title :</label>
                         <input type="text" id="title" name="thread_title" class="form-input" maxlength="40" required>
                     </div>
                     
                     <div class="form-group">
                         <label for="description">Description :</label>
-                        <textarea id="description" name="thread_desc" class="form-input" maxlength="300" rows="4" required></textarea>
+                        <textarea id="description" name="thread_desc" class="form-input" maxlength="80" rows="4" required></textarea>
                     </div>
                     
                     <div class="form-group">
@@ -39,7 +39,7 @@
                             </div>
                             <div class="radio-item">
                                 <input type="radio" id="tag-programation" name="thread_tag" value="Programation">
-                                <label for="tag-programation">Programmation</label>
+                                <label for="tag-programation">Programming</label>
                             </div>
                             <div class="radio-item">
                                 <input type="radio" id="tag-videogames" name="thread_tag" value="Video Games">
