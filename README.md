@@ -8,7 +8,7 @@ Développé par **Azilis Rosello** et **Yolan Chiotti** dans le cadre d'un proje
 ## 🖥️ Lancer le programme
 
 1. Exécutez le fichier **Laucher.exe** présent dans le dossier `src`.
-2. Importer le fichier **forum.sql** présent dans le dossier 'src' sur [http://localhost/phpmyadmin/](http://localhost/phpmyadmin/).
+2. Importer le fichier **forum.sql** présent dans le dossier `src` sur [http://localhost/phpmyadmin/](http://localhost/phpmyadmin/).
 3. Rendez-vous sur [http://localhost:8080/](http://localhost:8080/) dans votre navigateur.
 
 ---
